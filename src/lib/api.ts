@@ -62,6 +62,23 @@ export interface Person {
   MEMO2: string | null;
 }
 
+// Reservation data from MTR endpoint
+export interface Reservation {
+  PCODE: number;
+  VISIDATE: string;
+  VISITIME: string;
+  PNAME: string;
+  PBIRTH: string;
+  AGE: string;
+  PHONENUM: string;
+  SEX: string;
+  SERIAL: number;
+  N: number;
+  GUBUN: string;
+  RESERVED: string;
+  FIN: string;
+}
+
 // Updated interfaces to match the actual API response structure
 export interface ApiResponse<T> {
   data: T;
@@ -155,6 +172,41 @@ export class FirebirdApiService {
       status: 'Connected',
       timestamp: new Date().toISOString()
     };
+  }
+
+  // MTR (reservation) endpoints
+  static async getReservations(): Promise<Reservation[]> {
+    try {
+      const response = await api.get<Reservation[]>('/api/mtr');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching reservations:', error);
+      throw error;
+    }
+  }
+
+  static async searchReservationsByName(name: string): Promise<Reservation[]> {
+    try {
+      const reservations = await this.getReservations();
+      return reservations.filter(reservation => 
+        reservation.PNAME.toLowerCase().includes(name.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Error searching reservations by name:', error);
+      throw error;
+    }
+  }
+
+  static async searchReservationsByBirthDate(birthDate: string): Promise<Reservation[]> {
+    try {
+      const reservations = await this.getReservations();
+      return reservations.filter(reservation => 
+        reservation.PBIRTH.includes(birthDate)
+      );
+    } catch (error) {
+      console.error('Error searching reservations by birth date:', error);
+      throw error;
+    }
   }
 }
 

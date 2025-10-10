@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Database, Users, Activity, Settings } from 'lucide-react';
+import { Database, Users, Activity, Settings, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Database },
   { name: 'Persons', href: '/persons', icon: Users },
+  { name: '예약조회', href: '/reservations', icon: Calendar },
   { name: 'Activity', href: '/activity', icon: Activity },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
