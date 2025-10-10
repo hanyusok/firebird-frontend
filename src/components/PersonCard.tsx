@@ -1,8 +1,7 @@
 'use client';
 
 import { Person } from '@/lib/api';
-import { formatDate, formatPhoneNumber } from '@/lib/utils';
-import { Edit, Trash2, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { Edit, Trash2, Calendar } from 'lucide-react';
 
 interface PersonCardProps {
   person: Person;
@@ -17,30 +16,27 @@ export default function PersonCard({ person, onEdit, onDelete }: PersonCardProps
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-medium text-gray-900 truncate">
-              {person.name}
+              {person.PNAME}
             </h3>
-            {person.email && (
+            <div className="mt-1 flex items-center text-sm text-gray-500">
+              <Calendar className="flex-shrink-0 mr-1.5 h-4 w-4" />
+              <span className="truncate">생년월일: {person.PBIRTH}</span>
+            </div>
+            <div className="mt-1 flex items-center text-sm text-gray-500">
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                성별: {person.SEX === '1' ? '남성' : person.SEX === '2' ? '여성' : person.SEX === '3' ? '남아' : '여아'}
+              </span>
+            </div>
+            {person.RELATION2 && (
               <div className="mt-1 flex items-center text-sm text-gray-500">
-                <Mail className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                <span className="truncate">{person.email}</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  관계: {person.RELATION2}
+                </span>
               </div>
             )}
-            {person.phone && (
-              <div className="mt-1 flex items-center text-sm text-gray-500">
-                <Phone className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                <span>{formatPhoneNumber(person.phone)}</span>
-              </div>
-            )}
-            {person.address && (
-              <div className="mt-1 flex items-center text-sm text-gray-500">
-                <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                <span className="truncate">{person.address}</span>
-              </div>
-            )}
-            {person.created_at && (
+            {person.SEARCHID && (
               <div className="mt-1 flex items-center text-xs text-gray-400">
-                <Calendar className="flex-shrink-0 mr-1.5 h-3 w-3" />
-                <span>Created {formatDate(person.created_at)}</span>
+                <span>검색ID: {person.SEARCHID}</span>
               </div>
             )}
           </div>
@@ -57,7 +53,7 @@ export default function PersonCard({ person, onEdit, onDelete }: PersonCardProps
             Edit
           </button>
           <button
-            onClick={() => onDelete(person.id!)}
+            onClick={() => onDelete(person.PCODE)}
             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
           >
             <Trash2 className="h-3 w-3 mr-1" />

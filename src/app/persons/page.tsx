@@ -26,32 +26,32 @@ export default function PersonsPage() {
       setLoading(true);
       setError(null);
       const data = await FirebirdApiService.getPersons();
-      setPersons(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch persons');
+      setPersons(data.persons);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err as Error).message : 'Failed to fetch persons');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreatePerson = async (personData: Omit<Person, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleCreatePerson = async (personData: Partial<Person>) => {
     try {
       const newPerson = await FirebirdApiService.createPerson(personData);
       setPersons(prev => [...prev, newPerson]);
       setShowModal(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create person');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err as Error).message : 'Failed to create person');
     }
   };
 
   const handleUpdatePerson = async (id: number, personData: Partial<Person>) => {
     try {
       const updatedPerson = await FirebirdApiService.updatePerson(id, personData);
-      setPersons(prev => prev.map(p => p.id === id ? updatedPerson : p));
+      setPersons(prev => prev.map(p => p.PCODE === id ? updatedPerson : p));
       setEditingPerson(null);
       setShowModal(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update person');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err as Error).message : 'Failed to update person');
     }
   };
 
@@ -60,9 +60,9 @@ export default function PersonsPage() {
     
     try {
       await FirebirdApiService.deletePerson(id);
-      setPersons(prev => prev.filter(p => p.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete person');
+      setPersons(prev => prev.filter(p => p.PCODE !== id));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err as Error).message : 'Failed to delete person');
     }
   };
 
@@ -77,9 +77,9 @@ export default function PersonsPage() {
   };
 
   const filteredPersons = persons.filter(person =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    person.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    person.phone?.includes(searchTerm)
+    person.PNAME.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    person.SEARCHID.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    person.PBIRTH.includes(searchTerm)
   );
 
   if (loading) {
@@ -207,17 +207,17 @@ export default function PersonsPage() {
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {persons.filter(p => p.email).length}
+                        {persons.filter(p => p.VINFORM).length}
                       </span>
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        With Email
+                        With VINFORM
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {persons.filter(p => p.email).length}
+                        {persons.filter(p => p.VINFORM).length}
                       </dd>
                     </dl>
                   </div>
@@ -253,7 +253,7 @@ export default function PersonsPage() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredPersons.map((person) => (
                   <PersonCard
-                    key={person.id}
+                    key={person.PCODE}
                     person={person}
                     onEdit={handleEditPerson}
                     onDelete={handleDeletePerson}
@@ -270,7 +270,7 @@ export default function PersonsPage() {
         <PersonModal
           person={editingPerson}
           onSave={editingPerson ? 
-            (data) => handleUpdatePerson(editingPerson.id!, data) : 
+            (data) => handleUpdatePerson(editingPerson.PCODE, data) : 
             handleCreatePerson
           }
           onClose={handleCloseModal}

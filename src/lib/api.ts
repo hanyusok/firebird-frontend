@@ -35,39 +35,75 @@ api.interceptors.response.use(
   }
 );
 
-// Types for our data models
+// Types for our data models based on the actual API response
 export interface Person {
-  id?: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  created_at?: string;
-  updated_at?: string;
+  PCODE: number;
+  FCODE: number;
+  PNAME: string;
+  PBIRTH: string;
+  PIDNUM: string;
+  PIDNUM2: string;
+  OLDIDNUM: string;
+  SEX: string;
+  RELATION: string;
+  RELATION2: string | null;
+  CRIPPLED: string;
+  VINFORM: string | null;
+  AGREE: string | null;
+  LASTCHECK: string | null;
+  PERINFO: string;
+  CARDCHECK: string | null;
+  JAEHAN: string | null;
+  SEARCHID: string;
+  PCCHECK: string | null;
+  PSNIDT: string | null;
+  PSNID: string | null;
+  MEMO1: string | null;
+  MEMO2: string | null;
 }
 
+// Updated interfaces to match the actual API response structure
 export interface ApiResponse<T> {
-  success: boolean;
   data: T;
-  message?: string;
+  pagination?: {
+    total: number;
+    currentPage: number;
+    itemsPerPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 export interface PaginatedResponse<T> {
-  success: boolean;
   data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  message?: string;
+  pagination: {
+    total: number;
+    currentPage: number;
+    itemsPerPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 // API service class
 export class FirebirdApiService {
   // Persons endpoints
-  static async getPersons(): Promise<Person[]> {
+  static async getPersons(): Promise<{ persons: Person[]; pagination: { total: number; currentPage: number; itemsPerPage: number; totalPages: number; hasNextPage: boolean; hasPreviousPage: boolean } }> {
     try {
       const response = await api.get<ApiResponse<Person[]>>('/api/persons');
-      return response.data.data;
+      return {
+        persons: response.data.data,
+        pagination: response.data.pagination || {
+          total: 0,
+          currentPage: 1,
+          itemsPerPage: 10,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false
+        }
+      };
     } catch (error) {
       console.error('Error fetching persons:', error);
       throw error;
@@ -84,7 +120,7 @@ export class FirebirdApiService {
     }
   }
 
-  static async createPerson(person: Omit<Person, 'id' | 'created_at' | 'updated_at'>): Promise<Person> {
+  static async createPerson(person: Partial<Person>): Promise<Person> {
     try {
       const response = await api.post<ApiResponse<Person>>('/api/persons', person);
       return response.data.data;
@@ -113,15 +149,12 @@ export class FirebirdApiService {
     }
   }
 
-  // Health check endpoint
+  // Health check endpoint (not available on this API)
   static async healthCheck(): Promise<{ status: string; timestamp: string }> {
-    try {
-      const response = await api.get<ApiResponse<{ status: string; timestamp: string }>>('/api/health');
-      return response.data.data;
-    } catch (error) {
-      console.error('Error checking API health:', error);
-      throw error;
-    }
+    return {
+      status: 'Connected',
+      timestamp: new Date().toISOString()
+    };
   }
 }
 

@@ -2,34 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import { Person } from '@/lib/api';
-import { validateEmail, validatePhone } from '@/lib/utils';
-import { X, Save, User, Mail, Phone, MapPin } from 'lucide-react';
+import { X, Save, User, Calendar } from 'lucide-react';
 
 interface PersonModalProps {
   person?: Person | null;
-  onSave: (data: Omit<Person, 'id' | 'created_at' | 'updated_at'>) => void;
+  onSave: (data: Partial<Person>) => void;
   onClose: () => void;
 }
 
 interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
+  PNAME: string;
+  PBIRTH: string;
+  SEX: string;
+  RELATION: string;
+  RELATION2: string;
+  SEARCHID: string;
 }
 
 interface FormErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
+  PNAME?: string;
+  PBIRTH?: string;
+  SEX?: string;
+  RELATION?: string;
+  SEARCHID?: string;
 }
 
 export default function PersonModal({ person, onSave, onClose }: PersonModalProps) {
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    PNAME: '',
+    PBIRTH: '',
+    SEX: '1',
+    RELATION: '1',
+    RELATION2: '',
+    SEARCHID: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,10 +44,12 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
   useEffect(() => {
     if (person) {
       setFormData({
-        name: person.name || '',
-        email: person.email || '',
-        phone: person.phone || '',
-        address: person.address || '',
+        PNAME: person.PNAME || '',
+        PBIRTH: person.PBIRTH || '',
+        SEX: person.SEX || '1',
+        RELATION: person.RELATION || '1',
+        RELATION2: person.RELATION2 || '',
+        SEARCHID: person.SEARCHID || '',
       });
     }
   }, [person]);
@@ -50,16 +57,24 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!formData.PNAME.trim()) {
+      newErrors.PNAME = '이름은 필수입니다';
     }
 
-    if (formData.email && !validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (!formData.PBIRTH.trim()) {
+      newErrors.PBIRTH = '생년월일은 필수입니다';
     }
 
-    if (formData.phone && !validatePhone(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+    if (!formData.SEX) {
+      newErrors.SEX = '성별을 선택해주세요';
+    }
+
+    if (!formData.RELATION) {
+      newErrors.RELATION = '관계를 선택해주세요';
+    }
+
+    if (!formData.SEARCHID.trim()) {
+      newErrors.SEARCHID = '검색ID는 필수입니다';
     }
 
     setErrors(newErrors);
@@ -82,7 +97,7 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
   };
 
   const handleChange = (field: keyof FormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
     // Clear error when user starts typing
@@ -107,7 +122,7 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {isEdit ? 'Edit Person' : 'Add New Person'}
+                  {isEdit ? '인물 정보 수정' : '새 인물 추가'}
                 </h3>
                 <button
                   type="button"
@@ -124,8 +139,8 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
               <div className="space-y-4">
                 {/* Name field */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Name *
+                  <label htmlFor="PNAME" className="block text-sm font-medium text-gray-700">
+                    이름 *
                   </label>
                   <div className="mt-1 relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -133,88 +148,132 @@ export default function PersonModal({ person, onSave, onClose }: PersonModalProp
                     </div>
                     <input
                       type="text"
-                      id="name"
-                      value={formData.name}
-                      onChange={handleChange('name')}
+                      id="PNAME"
+                      value={formData.PNAME}
+                      onChange={handleChange('PNAME')}
                       className={`block w-full pl-10 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                        errors.name ? 'border-red-300' : 'border-gray-300'
+                        errors.PNAME ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="Enter full name"
+                      placeholder="이름을 입력하세요"
                     />
                   </div>
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  {errors.PNAME && (
+                    <p className="mt-1 text-sm text-red-600">{errors.PNAME}</p>
                   )}
                 </div>
 
-                {/* Email field */}
+                {/* Birth date field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email
+                  <label htmlFor="PBIRTH" className="block text-sm font-medium text-gray-700">
+                    생년월일 *
                   </label>
                   <div className="mt-1 relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Calendar className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      type="email"
-                      id="email"
-                      value={formData.email}
-                      onChange={handleChange('email')}
+                      type="text"
+                      id="PBIRTH"
+                      value={formData.PBIRTH}
+                      onChange={handleChange('PBIRTH')}
                       className={`block w-full pl-10 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                        errors.email ? 'border-red-300' : 'border-gray-300'
+                        errors.PBIRTH ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="Enter email address"
+                      placeholder="예: 1990. 1. 1."
                     />
                   </div>
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  {errors.PBIRTH && (
+                    <p className="mt-1 text-sm text-red-600">{errors.PBIRTH}</p>
                   )}
                 </div>
 
-                {/* Phone field */}
+                {/* Gender field */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                    Phone
+                  <label htmlFor="SEX" className="block text-sm font-medium text-gray-700">
+                    성별 *
                   </label>
-                  <div className="mt-1 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={formData.phone}
-                      onChange={handleChange('phone')}
-                      className={`block w-full pl-10 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                        errors.phone ? 'border-red-300' : 'border-gray-300'
+                  <div className="mt-1">
+                    <select
+                      id="SEX"
+                      value={formData.SEX}
+                      onChange={handleChange('SEX')}
+                      className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                        errors.SEX ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="Enter phone number"
-                    />
+                    >
+                      <option value="1">남성</option>
+                      <option value="2">여성</option>
+                      <option value="3">남아</option>
+                      <option value="4">여아</option>
+                    </select>
                   </div>
-                  {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                  {errors.SEX && (
+                    <p className="mt-1 text-sm text-red-600">{errors.SEX}</p>
                   )}
                 </div>
 
-                {/* Address field */}
+                {/* Relation field */}
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                    Address
+                  <label htmlFor="RELATION" className="block text-sm font-medium text-gray-700">
+                    관계 *
                   </label>
-                  <div className="mt-1 relative">
-                    <div className="absolute top-3 left-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <textarea
-                      id="address"
-                      rows={3}
-                      value={formData.address}
-                      onChange={handleChange('address')}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="Enter address"
+                  <div className="mt-1">
+                    <select
+                      id="RELATION"
+                      value={formData.RELATION}
+                      onChange={handleChange('RELATION')}
+                      className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                        errors.RELATION ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="1">본인</option>
+                      <option value="2">배우자</option>
+                      <option value="3">세대주</option>
+                      <option value="4">가족</option>
+                    </select>
+                  </div>
+                  {errors.RELATION && (
+                    <p className="mt-1 text-sm text-red-600">{errors.RELATION}</p>
+                  )}
+                </div>
+
+                {/* Relation2 field */}
+                <div>
+                  <label htmlFor="RELATION2" className="block text-sm font-medium text-gray-700">
+                    관계 상세
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="RELATION2"
+                      value={formData.RELATION2}
+                      onChange={handleChange('RELATION2')}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      placeholder="관계 상세를 입력하세요"
                     />
                   </div>
+                </div>
+
+                {/* Search ID field */}
+                <div>
+                  <label htmlFor="SEARCHID" className="block text-sm font-medium text-gray-700">
+                    검색ID *
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      id="SEARCHID"
+                      value={formData.SEARCHID}
+                      onChange={handleChange('SEARCHID')}
+                      className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                        errors.SEARCHID ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      placeholder="예: 900101-1"
+                    />
+                  </div>
+                  {errors.SEARCHID && (
+                    <p className="mt-1 text-sm text-red-600">{errors.SEARCHID}</p>
+                  )}
                 </div>
               </div>
             </div>

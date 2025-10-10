@@ -24,19 +24,16 @@ export default function Home() {
         setLoading(true);
         setError(null);
         
-        // Fetch persons count and API health
-        const [persons, health] = await Promise.all([
-          FirebirdApiService.getPersons(),
-          FirebirdApiService.healthCheck()
-        ]);
+        // Fetch persons count
+        const personsData = await FirebirdApiService.getPersons();
 
         setStats({
-          totalPersons: persons.length,
-          apiStatus: health.status,
+          totalPersons: personsData.persons.length,
+          apiStatus: 'Connected',
           lastUpdate: new Date().toLocaleString(),
         });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? (err as Error).message : 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
       }
