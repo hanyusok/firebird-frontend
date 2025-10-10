@@ -127,6 +127,42 @@ export class FirebirdApiService {
     }
   }
 
+  static async searchPersonsByName(pname: string): Promise<Person[]> {
+    try {
+      const response = await api.get<Person[]>(`/api/persons/search`, {
+        params: { pname }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching persons by name:', error);
+      throw error;
+    }
+  }
+
+  static async searchPersonsByBirthdate(pbirth: string): Promise<Person[]> {
+    try {
+      const response = await api.get<Person[]>(`/api/persons/search`, {
+        params: { pbirth }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching persons by birthdate:', error);
+      throw error;
+    }
+  }
+
+  static async searchPersonsBySearchId(searchid: string): Promise<Person[]> {
+    try {
+      const response = await api.get<Person[]>(`/api/persons/search`, {
+        params: { searchid }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching persons by searchid:', error);
+      throw error;
+    }
+  }
+
   static async getPerson(id: number): Promise<Person> {
     try {
       const response = await api.get<ApiResponse<Person>>(`/api/persons/${id}`);
@@ -185,6 +221,31 @@ export class FirebirdApiService {
     }
   }
 
+  static async getReservationsByDate(yyyymmdd: string): Promise<Reservation[]> {
+    try {
+      const response = await api.get<Reservation[]>(`/api/mtr/date/${yyyymmdd}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching reservations for date ${yyyymmdd}:`, error);
+      throw error;
+    }
+  }
+
+  static async createReservationForDate(
+    yyyymmdd: string,
+    data: { PCODE: number; VISITIME?: string; GUBUN?: string }
+  ): Promise<Reservation> {
+    try {
+      const response = await api.post<Reservation>(`/api/mtr/date/${yyyymmdd}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error creating reservation for date ${yyyymmdd}:`, error);
+      throw error;
+    }
+  }
+
   static async searchReservationsByName(name: string): Promise<Reservation[]> {
     try {
       const reservations = await this.getReservations();
@@ -205,6 +266,28 @@ export class FirebirdApiService {
       );
     } catch (error) {
       console.error('Error searching reservations by birth date:', error);
+      throw error;
+    }
+  }
+
+  static async searchReservationsByNameForDate(name: string, yyyymmdd: string): Promise<Reservation[]> {
+    try {
+      const reservations = await this.getReservationsByDate(yyyymmdd);
+      return reservations.filter(reservation =>
+        reservation.PNAME.toLowerCase().includes(name.toLowerCase())
+      );
+    } catch (error) {
+      console.error(`Error searching reservations by name for date ${yyyymmdd}:`, error);
+      throw error;
+    }
+  }
+
+  static async searchReservationsByBirthDateForDate(birthDate: string, yyyymmdd: string): Promise<Reservation[]> {
+    try {
+      const reservations = await this.getReservationsByDate(yyyymmdd);
+      return reservations.filter(reservation => reservation.PBIRTH.includes(birthDate));
+    } catch (error) {
+      console.error(`Error searching reservations by birth date for date ${yyyymmdd}:`, error);
       throw error;
     }
   }

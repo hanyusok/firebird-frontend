@@ -7,26 +7,45 @@ import Error from '@/components/Error';
 import PersonCard from '@/components/PersonCard';
 import PersonModal from '@/components/PersonModal';
 import { FirebirdApiService, Person } from '@/lib/api';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function PersonsPage() {
   const [persons, setPersons] = useState<Person[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [reserveDate] = useState<string>(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
+  const [searchType, setSearchType] = useState<'name' | 'birthdate'>('name');
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
-  useEffect(() => {
-    fetchPersons();
-  }, []);
+  // No initial fetch; search on demand
 
   const fetchPersons = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await FirebirdApiService.getPersons();
-      setPersons(data.persons);
+      if (searchType === 'name') {
+        const results = await FirebirdApiService.searchPersonsByName(searchTerm.trim());
+        setPersons(results);
+      } else {
+        // Derive SEARCHID prefix from birthdate input (e.g., '1972. 10. 23.' -> '721023')
+        const digits = searchTerm.replace(/\D/g, '');
+        if (digits.length < 8) {
+          setPersons([]);
+        } else {
+          const yyyy = digits.slice(0, 4);
+          const yymmdd = yyyy.slice(2) + digits.slice(4, 6) + digits.slice(6, 8);
+          const results = await FirebirdApiService.searchPersonsBySearchId(`${yymmdd}-`);
+          setPersons(results);
+        }
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? (err as Error).message : 'Failed to fetch persons');
     } finally {
@@ -76,11 +95,27 @@ export default function PersonsPage() {
     setEditingPerson(null);
   };
 
-  const filteredPersons = persons.filter(person =>
-    person.PNAME.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    person.SEARCHID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    person.PBIRTH.includes(searchTerm)
-  );
+  const handleReserve = async (person: Person) => {
+    try {
+      setError(null);
+      const yyyymmdd = reserveDate.replace(/-/g, '');
+      await FirebirdApiService.createReservationForDate(yyyymmdd, { PCODE: person.PCODE });
+      alert('예약이 등록되었습니다.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err as Error).message : 'Failed to create reservation');
+    }
+  };
+
+  const filteredPersons = persons.filter(person => {
+    const q = searchTerm.toLowerCase();
+    if (searchType === 'birthdate') {
+      return person.PBIRTH.includes(searchTerm);
+    }
+    return (
+      person.PNAME.toLowerCase().includes(q) ||
+      person.SEARCHID.toLowerCase().includes(q)
+    );
+  });
 
   if (loading) {
     return (
@@ -107,15 +142,7 @@ export default function PersonsPage() {
                 Manage person records in your Firebird database
               </p>
             </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
-              <button
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Person
-              </button>
-            </div>
+            {/* Creation disabled per requirements */}
           </div>
 
           {/* Error Display */}
@@ -128,25 +155,49 @@ export default function PersonsPage() {
           {/* Search and Filter */}
           <div className="mt-6 bg-white shadow rounded-lg p-6">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
+              <div className="flex-1 flex">
+                <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
-                    placeholder="Search persons by name, email, or phone..."
+                    placeholder={searchType === 'name' ? '이름 또는 SEARCHID로 검색' : '생년월일로 검색 (예: 1990. 1. 1.)'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
-              </div>
-              <div className="flex items-center">
-                <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
+                <button
+                  onClick={fetchPersons}
+                  className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  검색
                 </button>
+              </div>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="name"
+                    checked={searchType === 'name'}
+                    onChange={(e) => setSearchType(e.target.value as 'name' | 'birthdate')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium text-gray-700">이름</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="searchType"
+                    value="birthdate"
+                    checked={searchType === 'birthdate'}
+                    onChange={(e) => setSearchType(e.target.value as 'name' | 'birthdate')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium text-gray-700">생년월일</span>
+                </label>
               </div>
             </div>
           </div>
@@ -237,17 +288,7 @@ export default function PersonsPage() {
                 <p className="mt-1 text-sm text-gray-500">
                   {searchTerm ? 'Try adjusting your search terms.' : 'Get started by creating a new person.'}
                 </p>
-                {!searchTerm && (
-                  <div className="mt-6">
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Person
-                    </button>
-                  </div>
-                )}
+                {/* Creation disabled per requirements */}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -255,8 +296,7 @@ export default function PersonsPage() {
                   <PersonCard
                     key={person.PCODE}
                     person={person}
-                    onEdit={handleEditPerson}
-                    onDelete={handleDeletePerson}
+                    onReserve={handleReserve}
                   />
                 ))}
               </div>

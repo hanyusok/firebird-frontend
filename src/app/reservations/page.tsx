@@ -14,6 +14,13 @@ export default function ReservationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'birthdate'>('name');
   const [searchResults, setSearchResults] = useState<Reservation[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
   const [queueStats, setQueueStats] = useState<{
     total: number;
     waiting: number;
@@ -25,7 +32,8 @@ export default function ReservationsPage() {
   useEffect(() => {
     const loadQueueStats = async () => {
       try {
-        const reservations = await FirebirdApiService.getReservations();
+        const yyyymmdd = selectedDate.replace(/-/g, '');
+        const reservations = await FirebirdApiService.getReservationsByDate(yyyymmdd);
         
         const stats = {
           total: reservations.length,
@@ -44,7 +52,7 @@ export default function ReservationsPage() {
     };
 
     loadQueueStats();
-  }, []);
+  }, [selectedDate]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -58,9 +66,15 @@ export default function ReservationsPage() {
       
       let results: Reservation[];
       if (searchType === 'name') {
-        results = await FirebirdApiService.searchReservationsByName(searchTerm);
+        results = await FirebirdApiService.searchReservationsByNameForDate(
+          searchTerm,
+          selectedDate.replace(/-/g, '')
+        );
       } else {
-        results = await FirebirdApiService.searchReservationsByBirthDate(searchTerm);
+        results = await FirebirdApiService.searchReservationsByBirthDateForDate(
+          searchTerm,
+          selectedDate.replace(/-/g, '')
+        );
       }
       
       setSearchResults(results);
@@ -226,6 +240,17 @@ export default function ReservationsPage() {
           {/* Search Form */}
           <div className="bg-white shadow rounded-lg p-6 mb-8">
             <div className="flex flex-col sm:flex-row gap-4">
+              {/* Date Selector */}
+              <div className="flex items-center space-x-3">
+                <label htmlFor="reservation-date" className="text-sm font-medium text-gray-700">날짜</label>
+                <input
+                  id="reservation-date"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="block px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
               {/* Search Type Selection */}
               <div className="flex space-x-4">
                 <label className="flex items-center">
