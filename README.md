@@ -1,18 +1,19 @@
-# Firebird Database Manager Frontend
+# MartClinic Direct
 
-A modern Next.js frontend application for managing Firebird database records. This application provides a beautiful, responsive interface for interacting with your Firebird REST API.
+A modern Next.js frontend application for outpatient reservation and information management. This application provides a beautiful, responsive interface for outpatients to easily access reservation services and important clinic information and notices.
 
 ## 🚀 Features
 
 - **Modern UI**: Built with Next.js 15, TypeScript, and Tailwind CSS
 - **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **CRUD Operations**: Full Create, Read, Update, Delete functionality for person records
+- **Appointment Booking**: Easy reservation system for outpatients
 - **Real-time Updates**: Live data fetching and state management
 - **Error Handling**: Comprehensive error handling with user-friendly messages
 - **Loading States**: Smooth loading indicators and transitions
-- **Search & Filter**: Search through person records by name, email, or phone
+- **Search & Filter**: Search through appointments and patient records
 - **Form Validation**: Client-side validation for all form inputs
 - **Type Safety**: Full TypeScript support for better development experience
+- **Clinic Information**: Access to important notices and clinic information
 
 ## 🛠️ Technology Stack
 
@@ -26,7 +27,7 @@ A modern Next.js frontend application for managing Firebird database records. Th
 ## 📋 Prerequisites
 
 - Node.js 18+ (LTS recommended)
-- Your Firebird REST API server running on `http://localhost:3000`
+- Your clinic management API server running on `http://localhost:3000`
 - Modern web browser
 
 ## 🚀 Quick Start
@@ -34,7 +35,7 @@ A modern Next.js frontend application for managing Firebird database records. Th
 1. **Clone and install dependencies:**
    ```bash
    git clone <your-repo-url>
-   cd firebird-frontend
+   cd martclinic-direct
    npm install
    ```
 
@@ -45,8 +46,8 @@ A modern Next.js frontend application for managing Firebird database records. Th
    NODE_ENV=development
    ```
 
-3. **Start your Firebird REST API server:**
-   Make sure your Firebird REST API is running on `http://localhost:3000`
+3. **Start your clinic management API server:**
+   Make sure your clinic management API is running on `http://localhost:3000`
 
 4. **Start the development server:**
    ```bash
@@ -59,17 +60,17 @@ A modern Next.js frontend application for managing Firebird database records. Th
 ## 📁 Project Structure
 
 ```
-firebird-frontend/
+martclinic-direct/
 ├── src/
 │   ├── app/                    # Next.js App Router pages
 │   │   ├── page.tsx           # Dashboard page
-│   │   ├── persons/           # Persons management
+│   │   ├── persons/           # Patient management
 │   │   ├── activity/          # Activity log
 │   │   └── settings/          # Settings page
 │   ├── components/            # Reusable UI components
 │   │   ├── Navigation.tsx     # Main navigation
-│   │   ├── PersonCard.tsx     # Person display card
-│   │   ├── PersonModal.tsx    # Person create/edit modal
+│   │   ├── PersonCard.tsx     # Patient display card
+│   │   ├── PersonModal.tsx    # Patient create/edit modal
 │   │   ├── Loading.tsx        # Loading component
 │   │   └── Error.tsx          # Error display component
 │   └── lib/                   # Utilities and services
@@ -87,8 +88,8 @@ firebird-frontend/
 - Real-time API status
 - Recent activity summary
 
-### Persons Management
-- Grid view of all persons
+### Patient Management
+- Grid view of all patients
 - Search and filter functionality
 - Create, edit, and delete operations
 - Form validation
@@ -108,14 +109,14 @@ firebird-frontend/
 
 ## 🔧 API Integration
 
-The application integrates with your Firebird REST API through:
+The application integrates with your clinic management API through:
 
 - **Base URL**: Configurable via `NEXT_PUBLIC_API_URL`
 - **Endpoints**: 
-  - `GET /api/persons` - Fetch all persons
-  - `POST /api/persons` - Create new person
-  - `PUT /api/persons/:id` - Update person
-  - `DELETE /api/persons/:id` - Delete person
+  - `GET /api/persons` - Fetch all patients
+  - `POST /api/persons` - Create new patient
+  - `PUT /api/persons/:id` - Update patient
+  - `DELETE /api/persons/:id` - Delete patient
   - `GET /api/health` - Health check
 
 ## 🎯 Key Features
@@ -180,7 +181,7 @@ For support and questions:
 
 ## 🔄 Updates
 
-This frontend is designed to work seamlessly with your existing Firebird REST API. When you update your API endpoints or data models, make sure to update the corresponding types and API client in this frontend.
+This frontend is designed to work seamlessly with your existing clinic management API. When you update your API endpoints or data models, make sure to update the corresponding types and API client in this frontend.
 
 ---
 

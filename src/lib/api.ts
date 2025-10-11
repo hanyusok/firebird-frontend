@@ -1,7 +1,10 @@
 import axios from 'axios';
+import { User, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserActivity } from '@/types/auth';
+import { config } from './config';
+import { MockAuthService } from './mockAuth';
 
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = config.API_BASE_URL;
 
 // Create axios instance with default config
 const api = axios.create({
@@ -12,10 +15,17 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for logging
+// Request interceptor for logging and auth token
 api.interceptors.request.use(
   (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
+    
+    // Add auth token if available
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     return config;
   },
   (error) => {
@@ -31,6 +41,13 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error('Response error:', error.response?.data || error.message);
+    
+    // Handle 401 errors (unauthorized)
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token');
+      window.location.href = '/auth/signin';
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -105,7 +122,7 @@ export interface PaginatedResponse<T> {
 }
 
 // API service class
-export class FirebirdApiService {
+export class ClinicApiService {
   // Persons endpoints
   static async getPersons(): Promise<{ persons: Person[]; pagination: { total: number; currentPage: number; itemsPerPage: number; totalPages: number; hasNextPage: boolean; hasPreviousPage: boolean } }> {
     try {
@@ -289,6 +306,222 @@ export class FirebirdApiService {
     } catch (error) {
       console.error(`Error searching reservations by birth date for date ${yyyymmdd}:`, error);
       throw error;
+    }
+  }
+
+  // Authentication endpoints
+  static async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.login(credentials);
+    }
+    
+    try {
+      const response = await api.post<{ user: User; token: string }>('/api/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      console.error('Error logging in:', error);
+      throw error;
+    }
+  }
+
+  static async register(data: RegisterData): Promise<{ user: User; token: string }> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.register(data);
+    }
+    
+    try {
+      const response = await api.post<{ user: User; token: string }>('/api/auth/register', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error registering:', error);
+      throw error;
+    }
+  }
+
+  static async getCurrentUser(): Promise<User> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.getCurrentUser();
+    }
+    
+    try {
+      const response = await api.get<{ user: User }>('/api/auth/me');
+      return response.data.user;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      throw error;
+    }
+  }
+
+  static async updateProfile(data: ProfileUpdateData): Promise<User> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.updateProfile(data);
+    }
+    
+    try {
+      const response = await api.put<{ user: User }>('/api/auth/profile', data);
+      return response.data.user;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
+
+  static async changePassword(data: PasswordChangeData): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.changePassword(data);
+    }
+    
+    try {
+      await api.put('/api/auth/password', data);
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
+    }
+  }
+
+  static async requestPasswordReset(email: string): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.requestPasswordReset(email);
+    }
+    
+    try {
+      await api.post('/api/auth/forgot-password', { email });
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      throw error;
+    }
+  }
+
+  static async resetPassword(token: string, password: string): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.resetPassword(token, password);
+    }
+    
+    try {
+      await api.post('/api/auth/reset-password', { token, password });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  }
+
+  static async logout(): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.logout();
+    }
+    
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      // Don't throw error for logout
+    }
+  }
+
+  // User management endpoints (admin only)
+  static async getUsers(): Promise<User[]> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.getUsers();
+    }
+    
+    try {
+      const response = await api.get<{ users: User[] }>('/api/users');
+      return response.data.users;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
+  static async createUser(data: RegisterData): Promise<User> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.createUser(data);
+    }
+    
+    try {
+      const response = await api.post<{ user: User }>('/api/users', data);
+      return response.data.user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  static async updateUser(id: number, data: Partial<RegisterData>): Promise<User> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.updateUser(id, data);
+    }
+    
+    try {
+      const response = await api.put<{ user: User }>(`/api/users/${id}`, data);
+      return response.data.user;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  static async deleteUser(id: number): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.deleteUser(id);
+    }
+    
+    try {
+      await api.delete(`/api/users/${id}`);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  static async toggleUserStatus(id: number): Promise<User> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.toggleUserStatus(id);
+    }
+    
+    try {
+      const response = await api.patch<{ user: User }>(`/api/users/${id}/toggle-status`);
+      return response.data.user;
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      throw error;
+    }
+  }
+
+  // Activity logging
+  static async getUserActivity(userId?: number): Promise<UserActivity[]> {
+    if (config.USE_MOCK_AUTH) {
+      return MockAuthService.getUserActivity(userId);
+    }
+    
+    try {
+      const url = userId ? `/api/activity/user/${userId}` : '/api/activity';
+      const response = await api.get<{ activities: UserActivity[] }>(url);
+      return response.data.activities;
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      throw error;
+    }
+  }
+
+  static async logActivity(action: string, resource: string, resourceId?: number, details?: string): Promise<void> {
+    if (config.USE_MOCK_AUTH) {
+      // Get current user ID from localStorage token
+      const token = localStorage.getItem('auth_token');
+      const userId = token ? parseInt(token.split('_')[2]) : 1;
+      return MockAuthService.logActivity(userId, action, resource, resourceId, details);
+    }
+    
+    try {
+      await api.post('/api/activity', {
+        action,
+        resource,
+        resourceId,
+        details,
+      });
+    } catch (error) {
+      console.error('Error logging activity:', error);
+      // Don't throw error for activity logging
     }
   }
 }

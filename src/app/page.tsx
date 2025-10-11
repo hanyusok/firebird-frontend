@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
-import { FirebirdApiService } from '@/lib/api';
-import { Database, Users, Activity, CheckCircle } from 'lucide-react';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { ClinicApiService } from '@/lib/api';
+import { Stethoscope, Users, Activity, CheckCircle } from 'lucide-react';
 
 interface DashboardStats {
-  totalPersons: number;
+  totalPatients: number;
   apiStatus: string;
   lastUpdate: string;
 }
@@ -24,11 +25,11 @@ export default function Home() {
         setLoading(true);
         setError(null);
         
-        // Fetch persons count
-        const personsData = await FirebirdApiService.getPersons();
+        // Fetch patients count
+        const personsData = await ClinicApiService.getPersons();
 
         setStats({
-          totalPersons: personsData.persons.length,
+          totalPatients: personsData.persons.length,
           apiStatus: 'Connected',
           lastUpdate: new Date().toLocaleString(),
         });
@@ -49,40 +50,32 @@ export default function Home() {
     window.location.reload();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <Loading size="lg" text="Loading dashboard..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <Error message={error} onRetry={handleRetry} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        
+        {loading && (
+          <Loading size="lg" text="Loading dashboard..." />
+        )}
+
+        {error && (
+          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <Error message={error} onRetry={handleRetry} />
+          </div>
+        )}
+
+        {!loading && !error && (
+          <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
             <div className="text-center">
-              <Database className="mx-auto h-12 w-12 text-blue-600" />
+              <Stethoscope className="mx-auto h-12 w-12 text-blue-600" />
               <h1 className="mt-4 text-3xl font-bold text-gray-900">
-                Firebird Database Manager
+                MartClinic Direct
               </h1>
               <p className="mt-2 text-lg text-gray-600">
-                Manage your Firebird database records with ease
+                Easy outpatient reservation and clinic information access
               </p>
             </div>
 
@@ -97,10 +90,10 @@ export default function Home() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium text-gray-500 truncate">
-                          Total Persons
+                          Total Patients
                         </dt>
                         <dd className="text-lg font-medium text-gray-900">
-                          {stats?.totalPersons || 0}
+                          {stats?.totalPatients || 0}
                         </dd>
                       </dl>
                     </div>
@@ -165,10 +158,10 @@ export default function Home() {
                   <div className="mt-8">
                     <h3 className="text-lg font-medium">
                       <span className="absolute inset-0" aria-hidden="true" />
-                      Manage Persons
+                      Manage Patients
                     </h3>
                     <p className="mt-2 text-sm text-gray-500">
-                      View, add, edit, and delete person records from your database.
+                      View, add, edit, and delete patient records from your clinic database.
                     </p>
                   </div>
                 </a>
@@ -188,7 +181,7 @@ export default function Home() {
                       View Activity
                     </h3>
                     <p className="mt-2 text-sm text-gray-500">
-                      Monitor database activity and recent changes.
+                      Monitor clinic activity and recent patient interactions.
                     </p>
                   </div>
                 </a>
@@ -199,24 +192,26 @@ export default function Home() {
                 >
                   <div>
                     <span className="rounded-lg inline-flex p-3 bg-purple-50 text-purple-700 ring-4 ring-white">
-                      <Database className="h-6 w-6" />
+                      <Stethoscope className="h-6 w-6" />
                     </span>
                   </div>
                   <div className="mt-8">
                     <h3 className="text-lg font-medium">
                       <span className="absolute inset-0" aria-hidden="true" />
-                      Database Settings
+                      Clinic Settings
                     </h3>
                     <p className="mt-2 text-sm text-gray-500">
-                      Configure database connections and preferences.
+                      Configure clinic settings and system preferences.
                     </p>
                   </div>
                 </a>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+          </div>
+        </main>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }

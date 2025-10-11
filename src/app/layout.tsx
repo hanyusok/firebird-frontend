@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/contexts/AuthContext";
+import DevCredentials from "@/components/DevCredentials";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Firebird Database Manager",
-  description: "A modern web interface for managing Firebird database records",
+  title: "MartClinic Direct",
+  description: "A modern web interface for outpatient reservation and clinic information management",
 };
 
 export default function RootLayout({
@@ -27,7 +29,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+          <DevCredentials />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
-import { FirebirdApiService, Reservation } from '@/lib/api';
+import { ClinicApiService, Reservation } from '@/lib/api';
 import { Search, Calendar, User, Phone, Clock, MapPin, CheckCircle } from 'lucide-react';
 
 export default function ReservationsPage() {
@@ -33,7 +33,7 @@ export default function ReservationsPage() {
     const loadQueueStats = async () => {
       try {
         const yyyymmdd = selectedDate.replace(/-/g, '');
-        const reservations = await FirebirdApiService.getReservationsByDate(yyyymmdd);
+        const reservations = await ClinicApiService.getReservationsByDate(yyyymmdd);
         
         const stats = {
           total: reservations.length,
@@ -66,12 +66,12 @@ export default function ReservationsPage() {
       
       let results: Reservation[];
       if (searchType === 'name') {
-        results = await FirebirdApiService.searchReservationsByNameForDate(
+        results = await ClinicApiService.searchReservationsByNameForDate(
           searchTerm,
           selectedDate.replace(/-/g, '')
         );
       } else {
-        results = await FirebirdApiService.searchReservationsByBirthDateForDate(
+        results = await ClinicApiService.searchReservationsByBirthDateForDate(
           searchTerm,
           selectedDate.replace(/-/g, '')
         );

@@ -6,7 +6,7 @@ import Loading from '@/components/Loading';
 import Error from '@/components/Error';
 import PersonCard from '@/components/PersonCard';
 import PersonModal from '@/components/PersonModal';
-import { FirebirdApiService, Person } from '@/lib/api';
+import { ClinicApiService, Person } from '@/lib/api';
 import { Search } from 'lucide-react';
 
 export default function PersonsPage() {
@@ -32,7 +32,7 @@ export default function PersonsPage() {
       setLoading(true);
       setError(null);
       if (searchType === 'name') {
-        const results = await FirebirdApiService.searchPersonsByName(searchTerm.trim());
+        const results = await ClinicApiService.searchPersonsByName(searchTerm.trim());
         setPersons(results);
       } else {
         // Derive SEARCHID prefix from birthdate input (e.g., '1972. 10. 23.' -> '721023')
@@ -42,7 +42,7 @@ export default function PersonsPage() {
         } else {
           const yyyy = digits.slice(0, 4);
           const yymmdd = yyyy.slice(2) + digits.slice(4, 6) + digits.slice(6, 8);
-          const results = await FirebirdApiService.searchPersonsBySearchId(`${yymmdd}-`);
+          const results = await ClinicApiService.searchPersonsBySearchId(`${yymmdd}-`);
           setPersons(results);
         }
       }
@@ -55,7 +55,7 @@ export default function PersonsPage() {
 
   const handleCreatePerson = async (personData: Partial<Person>) => {
     try {
-      const newPerson = await FirebirdApiService.createPerson(personData);
+      const newPerson = await ClinicApiService.createPerson(personData);
       setPersons(prev => [...prev, newPerson]);
       setShowModal(false);
     } catch (err: unknown) {
@@ -65,7 +65,7 @@ export default function PersonsPage() {
 
   const handleUpdatePerson = async (id: number, personData: Partial<Person>) => {
     try {
-      const updatedPerson = await FirebirdApiService.updatePerson(id, personData);
+      const updatedPerson = await ClinicApiService.updatePerson(id, personData);
       setPersons(prev => prev.map(p => p.PCODE === id ? updatedPerson : p));
       setEditingPerson(null);
       setShowModal(false);
@@ -78,7 +78,7 @@ export default function PersonsPage() {
     if (!confirm('Are you sure you want to delete this person?')) return;
     
     try {
-      await FirebirdApiService.deletePerson(id);
+      await ClinicApiService.deletePerson(id);
       setPersons(prev => prev.filter(p => p.PCODE !== id));
     } catch (err: unknown) {
       setError(err instanceof Error ? (err as Error).message : 'Failed to delete person');
@@ -99,7 +99,7 @@ export default function PersonsPage() {
     try {
       setError(null);
       const yyyymmdd = reserveDate.replace(/-/g, '');
-      await FirebirdApiService.createReservationForDate(yyyymmdd, { PCODE: person.PCODE });
+      await ClinicApiService.createReservationForDate(yyyymmdd, { PCODE: person.PCODE });
       alert('예약이 등록되었습니다.');
     } catch (err: unknown) {
       setError(err instanceof Error ? (err as Error).message : 'Failed to create reservation');
