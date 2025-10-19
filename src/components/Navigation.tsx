@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Stethoscope, Users, Activity, Settings, Calendar, User, LogOut, ChevronDown } from 'lucide-react';
+import { Stethoscope, Users, Activity, Settings, Calendar, User, LogOut, ChevronDown, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Stethoscope },
+  { name: 'Services', href: '/info', icon: Info },
   { name: 'Patients', href: '/persons', icon: Users },
   { name: '예약조회', href: '/reservations', icon: Calendar },
   { name: 'Activity', href: '/activity', icon: Activity },

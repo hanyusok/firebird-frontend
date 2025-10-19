@@ -6,6 +6,9 @@ export const config = {
   // API Configuration
   API_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
   
+  // JWT Configuration
+  JWT_SECRET: process.env.NEXT_PUBLIC_JWT_SECRET || 'dev-jwt-secret-change-in-production',
+  
   // Mock Configuration
   MOCK_DELAY: 1000, // Simulate API delay in milliseconds
 };

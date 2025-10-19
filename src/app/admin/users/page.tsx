@@ -7,7 +7,7 @@ import Navigation from '@/components/Navigation';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
 import { ClinicApiService } from '@/lib/api';
-import { User, UserRole } from '@/types/auth';
+import { UserType, UserRole } from '@/types/auth';
 import { 
   Plus, 
   Search, 
@@ -15,6 +15,7 @@ import {
   Trash2, 
   UserCheck, 
   UserX, 
+  User,
   Mail, 
   Phone, 
   Building, 
@@ -25,13 +26,13 @@ import {
 
 export default function UsersPage() {
   const { hasPermission } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [showUserMenu, setShowUserMenu] = useState<number | null>(null);
 
   // Check if user has permission to manage users

@@ -1,4 +1,4 @@
-export interface User {
+export interface UserType {
   id: number;
   email: string;
   name: string;
@@ -14,7 +14,7 @@ export interface User {
 export type UserRole = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'patient';
 
 export interface AuthState {
-  user: User | null;
+  user: UserType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { User, AuthState, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserRole, ROLE_PERMISSIONS } from '@/types/auth';
+import { UserType, AuthState, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserRole, ROLE_PERMISSIONS } from '@/types/auth';
 import { ClinicApiService } from '@/lib/api';
+import { AuthService } from '@/lib/auth/authService';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -19,11 +20,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type AuthAction =
   | { type: 'AUTH_START' }
-  | { type: 'AUTH_SUCCESS'; payload: User }
+  | { type: 'AUTH_SUCCESS'; payload: UserType }
   | { type: 'AUTH_FAILURE'; payload: string }
   | { type: 'AUTH_LOGOUT' }
   | { type: 'AUTH_CLEAR_ERROR' }
-  | { type: 'AUTH_UPDATE_USER'; payload: User };
+  | { type: 'AUTH_UPDATE_USER'; payload: UserType };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
@@ -78,8 +79,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const token = localStorage.getItem('auth_token');
         if (token) {
-          const user = await ClinicApiService.getCurrentUser();
-          dispatch({ type: 'AUTH_SUCCESS', payload: user });
+          // Validate token locally instead of making API call
+          const user = await AuthService.validateToken(token);
+          if (user) {
+            dispatch({ type: 'AUTH_SUCCESS', payload: user });
+          } else {
+            localStorage.removeItem('auth_token');
+            dispatch({ type: 'AUTH_FAILURE', payload: 'Session expired' });
+          }
         } else {
           dispatch({ type: 'AUTH_FAILURE', payload: '' });
         }

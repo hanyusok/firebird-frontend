@@ -1,7 +1,8 @@
-import { User, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserRole } from '@/types/auth';
+import { UserType, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserRole } from '@/types/auth';
+import { JWTService } from './auth/jwt';
 
 // Mock users database
-const mockUsers: User[] = [
+const mockUsers: UserType[] = [
   {
     id: 1,
     email: 'admin@martclinic.com',
@@ -103,10 +104,10 @@ const mockActivities: any[] = [
 
 // Mock authentication service
 export class MockAuthService {
-  private static currentUser: User | null = null;
+  private static currentUser: UserType | null = null;
   private static nextUserId = 6;
 
-  static async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
+  static async login(credentials: LoginCredentials): Promise<{ user: UserType; token: string }> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -136,8 +137,8 @@ export class MockAuthService {
     user.lastLoginAt = new Date().toISOString();
     this.currentUser = user;
 
-    // Generate mock token
-    const token = `mock_token_${user.id}_${Date.now()}`;
+    // Generate real JWT token
+    const token = JWTService.generateToken(user);
 
     // Log activity
     this.logActivity(user.id, 'login', 'authentication', null, 'User logged in successfully');
@@ -145,7 +146,7 @@ export class MockAuthService {
     return { user, token };
   }
 
-  static async register(data: RegisterData): Promise<{ user: User; token: string }> {
+  static async register(data: RegisterData): Promise<{ user: UserType; token: string }> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -155,7 +156,7 @@ export class MockAuthService {
     }
 
     // Create new user
-    const newUser: User = {
+    const newUser: UserType = {
       id: this.nextUserId++,
       email: data.email,
       name: data.name,
@@ -171,8 +172,8 @@ export class MockAuthService {
     mockUsers.push(newUser);
     this.currentUser = newUser;
 
-    // Generate mock token
-    const token = `mock_token_${newUser.id}_${Date.now()}`;
+    // Generate real JWT token
+    const token = JWTService.generateToken(newUser);
 
     // Log activity
     this.logActivity(newUser.id, 'create', 'user', newUser.id, 'New user registered');
@@ -189,6 +190,22 @@ export class MockAuthService {
     }
 
     return this.currentUser;
+  }
+
+  static async validateToken(token: string): Promise<UserType | null> {
+    try {
+      const payload = JWTService.verifyToken(token);
+      if (!payload) return null;
+
+      // Find user by ID from token
+      const user = mockUsers.find(u => u.id === payload.userId);
+      if (!user || !user.isActive) return null;
+
+      return user;
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      return null;
+    }
   }
 
   static async updateProfile(data: ProfileUpdateData): Promise<User> {
@@ -276,7 +293,7 @@ export class MockAuthService {
       throw new Error('User with this email already exists');
     }
 
-    const newUser: User = {
+    const newUser: UserType = {
       id: this.nextUserId++,
       email: data.email,
       name: data.name,
@@ -367,7 +384,7 @@ export class MockAuthService {
   }
 
   // Helper method to get mock users for display
-  static getMockUsers(): User[] {
+  static getMockUsers(): UserType[] {
     return mockUsers;
   }
 

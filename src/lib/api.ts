@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserActivity } from '@/types/auth';
+import { UserType, LoginCredentials, RegisterData, ProfileUpdateData, PasswordChangeData, UserActivity } from '@/types/auth';
 import { config } from './config';
 import { MockAuthService } from './mockAuth';
 
@@ -310,13 +310,13 @@ export class ClinicApiService {
   }
 
   // Authentication endpoints
-  static async login(credentials: LoginCredentials): Promise<{ user: User; token: string }> {
+  static async login(credentials: LoginCredentials): Promise<{ user: UserType; token: string }> {
     if (config.USE_MOCK_AUTH) {
       return MockAuthService.login(credentials);
     }
     
     try {
-      const response = await api.post<{ user: User; token: string }>('/api/auth/login', credentials);
+      const response = await api.post<{ user: UserType; token: string }>('/api/auth/login', credentials);
       return response.data;
     } catch (error) {
       console.error('Error logging in:', error);
@@ -324,13 +324,13 @@ export class ClinicApiService {
     }
   }
 
-  static async register(data: RegisterData): Promise<{ user: User; token: string }> {
+  static async register(data: RegisterData): Promise<{ user: UserType; token: string }> {
     if (config.USE_MOCK_AUTH) {
       return MockAuthService.register(data);
     }
     
     try {
-      const response = await api.post<{ user: User; token: string }>('/api/auth/register', data);
+      const response = await api.post<{ user: UserType; token: string }>('/api/auth/register', data);
       return response.data;
     } catch (error) {
       console.error('Error registering:', error);
@@ -344,7 +344,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.get<{ user: User }>('/api/auth/me');
+      const response = await api.get<{ user: UserType }>('/api/auth/me');
       return response.data.user;
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -358,7 +358,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.put<{ user: User }>('/api/auth/profile', data);
+      const response = await api.put<{ user: UserType }>('/api/auth/profile', data);
       return response.data.user;
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -425,7 +425,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.get<{ users: User[] }>('/api/users');
+      const response = await api.get<{ users: UserType[] }>('/api/users');
       return response.data.users;
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -439,7 +439,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.post<{ user: User }>('/api/users', data);
+      const response = await api.post<{ user: UserType }>('/api/users', data);
       return response.data.user;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -453,7 +453,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.put<{ user: User }>(`/api/users/${id}`, data);
+      const response = await api.put<{ user: UserType }>(`/api/users/${id}`, data);
       return response.data.user;
     } catch (error) {
       console.error('Error updating user:', error);
@@ -480,7 +480,7 @@ export class ClinicApiService {
     }
     
     try {
-      const response = await api.patch<{ user: User }>(`/api/users/${id}/toggle-status`);
+      const response = await api.patch<{ user: UserType }>(`/api/users/${id}/toggle-status`);
       return response.data.user;
     } catch (error) {
       console.error('Error toggling user status:', error);
