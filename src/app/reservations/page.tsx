@@ -79,7 +79,7 @@ export default function ReservationsPage() {
       
       setSearchResults(results);
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : '검색 중 오류가 발생했습니다');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : '검색 중 오류가 발생했습니다');
     } finally {
       setLoading(false);
     }

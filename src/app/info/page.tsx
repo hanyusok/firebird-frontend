@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Navigation from '@/components/Navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   Stethoscope, 
   Zap, 
@@ -103,9 +102,8 @@ export default function InfoPage() {
   ];
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
         
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -336,7 +334,6 @@ export default function InfoPage() {
             </div>
           </div>
         </main>
-      </div>
-    </ProtectedRoute>
+    </div>
   );
 }

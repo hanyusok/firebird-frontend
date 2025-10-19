@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import { ClinicApiService } from '@/lib/api';
 import { Stethoscope, Users, Activity, CheckCircle } from 'lucide-react';
 
@@ -34,7 +33,7 @@ export default function Home() {
           lastUpdate: new Date().toLocaleString(),
         });
       } catch (err: unknown) {
-        setError(err instanceof Error ? (err as Error).message : 'Failed to fetch dashboard data');
+        setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
       }
@@ -51,9 +50,8 @@ export default function Home() {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
         
         {loading && (
           <Loading size="lg" text="Loading dashboard..." />
@@ -211,7 +209,6 @@ export default function Home() {
           </div>
         </main>
         )}
-      </div>
-    </ProtectedRoute>
+    </div>
   );
 }

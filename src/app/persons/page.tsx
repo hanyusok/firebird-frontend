@@ -47,7 +47,7 @@ export default function PersonsPage() {
         }
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : 'Failed to fetch persons');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to fetch persons');
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ export default function PersonsPage() {
       setPersons(prev => [...prev, newPerson]);
       setShowModal(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : 'Failed to create person');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to create person');
     }
   };
 
@@ -70,7 +70,7 @@ export default function PersonsPage() {
       setEditingPerson(null);
       setShowModal(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : 'Failed to update person');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to update person');
     }
   };
 
@@ -81,7 +81,7 @@ export default function PersonsPage() {
       await ClinicApiService.deletePerson(id);
       setPersons(prev => prev.filter(p => p.PCODE !== id));
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : 'Failed to delete person');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to delete person');
     }
   };
 
@@ -102,7 +102,7 @@ export default function PersonsPage() {
       await ClinicApiService.createReservationForDate(yyyymmdd, { PCODE: person.PCODE });
       alert('예약이 등록되었습니다.');
     } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : 'Failed to create reservation');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to create reservation');
     }
   };
 
@@ -258,17 +258,17 @@ export default function PersonsPage() {
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {persons.filter(p => p.VINFORM).length}
+                        {persons.length}
                       </span>
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        With VINFORM
+                        Total Records
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {persons.filter(p => p.VINFORM).length}
+                        {persons.length}
                       </dd>
                     </dl>
                   </div>

@@ -1,13 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import Navigation from '@/components/Navigation';
 import Loading from '@/components/Loading';
 import Error from '@/components/Error';
 import { ClinicApiService } from '@/lib/api';
-import { UserActivity } from '@/types/auth';
 import { 
   Activity, 
   Search, 
@@ -21,31 +18,25 @@ import {
   ChevronUp
 } from 'lucide-react';
 
+interface UserActivity {
+  id: number;
+  userId: number;
+  action: string;
+  resource: string;
+  resourceId?: number;
+  details?: string;
+  timestamp: string;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
 export default function ActivityPage() {
-  const { hasPermission } = useAuth();
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [expandedActivities, setExpandedActivities] = useState<Set<number>>(new Set());
-
-  // Check if user has permission to view activity
-  if (!hasPermission('canViewActivity')) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-              <p className="text-gray-600">You don't have permission to view activity logs.</p>
-            </div>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
 
   useEffect(() => {
     fetchActivities();
@@ -55,10 +46,34 @@ export default function ActivityPage() {
     try {
       setLoading(true);
       setError(null);
-      const activitiesData = await ClinicApiService.getUserActivity();
-      setActivities(activitiesData);
+      // Mock activity data since authentication is removed
+      const mockActivities: UserActivity[] = [
+        {
+          id: 1,
+          userId: 1,
+          action: 'viewed',
+          resource: 'patients',
+          resourceId: 1,
+          details: 'Viewed patient record',
+          timestamp: new Date().toISOString(),
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0...'
+        },
+        {
+          id: 2,
+          userId: 1,
+          action: 'created',
+          resource: 'reservation',
+          resourceId: 1,
+          details: 'Created new reservation',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          ipAddress: '192.168.1.1',
+          userAgent: 'Mozilla/5.0...'
+        }
+      ];
+      setActivities(mockActivities);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch activities');
+      setError(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Failed to fetch activities');
     } finally {
       setLoading(false);
     }
@@ -147,17 +162,14 @@ export default function ActivityPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <Loading size="lg" text="Loading activity log..." />
-        </div>
-      </ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <Loading size="lg" text="Loading activity log..." />
+      </div>
     );
   }
 
   return (
-    <ProtectedRoute>
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
@@ -337,6 +349,5 @@ export default function ActivityPage() {
         </div>
       </main>
     </div>
-    </ProtectedRoute>
   );
 }
